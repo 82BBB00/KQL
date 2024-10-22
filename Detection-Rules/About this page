@@ -14,18 +14,18 @@ Each detection rule follows a standard format that includes the following inform
 - MITRE ATT&CK Mapping: Each rule is tagged with the MITRE ATT&CK Technique number to show which part of the framework it addresses.
 
 ### Example
-UC:1	Initial access
-UC:2	Execution
-UC:3	Persistence
-UC:4	Privilege escalation
-UC:5	Defense evasion
-UC:6	Credential access
-UC:7	Discovery
-UC:8	Lateral movement
-UC:9	Collection
-UC:10	Command and control
-UC:11	Exfiltration
-UC:12	Impact
-UC:13	Resource Development
-UC:14	Reconnaissance
+UC01	Initial access
+UC02	Execution
+UC03	Persistence
+UC04	Privilege escalation
+UC05	Defense evasion
+UC06	Credential access
+UC07	Discovery
+UC08	Lateral movement
+UC09	Collection
+UC10	Command and control
+UC11	Exfiltration
+UC12	Impact
+UC13	Resource Development
+UC14	Reconnaissance
 
