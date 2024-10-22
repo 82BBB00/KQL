@@ -1,0 +1,28 @@
+// Title: UC01 potential MFASweep (tool) activity has been detected. 
+// ID: $add here the Sentinel Rule ID
+// Description: This detection rule triggers when someone is attempting to access an account with more than a certain amount of Operation Systems within 10 minutes by using a tool named MFASweep. MFASweep is a PowerShell script that attempts to log in to various Microsoft services using a provided set of credentials and will attempt to identify if MFA is enabled. Depending on how conditional access policies and other multi-factor authentication settings are configured, some protocols may end up being left single factor. See for more information: https://github.com/dafthack/MFASweep
+// Severity: Medium
+// Tactics: Initial Access
+// Techniques: T1078 - Valid Accounts
+// Creation date: 3 August 2024
+// Created by: @82BBB00 - https://github.com/82BBB00
+// Last modified date: XXX
+// Last modified by: XXX
+// QueryFrequency: : PT10M
+// QueryPeriod": PT20M
+// The actual KQL query will start below
+let TotalThreshold = 5; // Set Treshold OperatingSystems. This can be changed depending on your environment
+SigninLogs
+| where TimeGenerated > ago(10m) // This time can be changed depending on your environment
+| extend operatingSystem = tostring(DeviceDetail.operatingSystem) // Retrieving OS
+| extend deviceId_ = tostring(DeviceDetail.deviceId) // Retrieving DeviceID
+| where isempty(deviceId_) //only look for unregistered devices
+| summarize
+            starttime = min(TimeGenerated),
+            stoptime = max(TimeGenerated),
+          OperationSystemsused = make_set(operatingSystem, 1000),
+          IPAddresses = make_set(IPAddress),
+          Applications = make_set(AppDisplayName)
+          by UserPrincipalName
+| extend CountOfOperationSystems = array_length(parse_json(OperationSystemsused))
+| where CountOfOperationSystems >= TotalThreshold
