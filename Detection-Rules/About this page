@@ -1,0 +1,31 @@
+## Overview
+
+This repository contains detection rules designed for Security Operations Centers (SOCs), written in Kusto Query Language (KQL). 
+Each detection rule is structured around a Use Case (UC), which is directly mapped to a relevant MITRE ATT&CK tactic and technique.
+
+By organizing detection rules this way, we ensure clear alignment with MITRE ATT&CK techniques, making it easier for SOC analysts to 
+implement and customize the rules according to their specific needs.
+
+## Detection Rule Structure
+
+Each detection rule follows a standard format that includes the following information:
+- Use Case (UC): Each rule is associated with a specific Use Case (UC) that represents a MITRE ATT&CK Tactic
+- KQL Query: The detection rule is written in Kusto Query Language (KQL) and is ready to be used in environments such as Microsoft Sentinel
+- MITRE ATT&CK Mapping: Each rule is tagged with the MITRE ATT&CK Technique number to show which part of the framework it addresses.
+
+### Example
+UC:1	Initial access
+UC:2	Execution
+UC:3	Persistence
+UC:4	Privilege escalation
+UC:5	Defense evasion
+UC:6	Credential access
+UC:7	Discovery
+UC:8	Lateral movement
+UC:9	Collection
+UC:10	Command and control
+UC:11	Exfiltration
+UC:12	Impact
+UC:13	Resource Development
+UC:14	Reconnaissance
+
