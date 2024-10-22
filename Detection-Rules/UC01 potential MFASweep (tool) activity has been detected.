@@ -12,7 +12,7 @@
 // QueryPeriod": PT20M
 // The actual KQL query will start below
 let TotalThreshold = 5; // Set Treshold OperatingSystems. This can be changed depending on your environment
-SigninLogs
+```SigninLogs
 | where TimeGenerated > ago(10m) // This time can be changed depending on your environment
 | extend operatingSystem = tostring(DeviceDetail.operatingSystem) // Retrieving OS
 | extend deviceId_ = tostring(DeviceDetail.deviceId) // Retrieving DeviceID
@@ -25,4 +25,4 @@ SigninLogs
           Applications = make_set(AppDisplayName)
           by UserPrincipalName
 | extend CountOfOperationSystems = array_length(parse_json(OperationSystemsused))
-| where CountOfOperationSystems >= TotalThreshold
+| where CountOfOperationSystems >= TotalThreshold```
