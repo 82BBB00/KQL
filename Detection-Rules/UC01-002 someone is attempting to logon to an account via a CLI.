@@ -10,7 +10,7 @@
 // Last modified date: XXX
 // Last modified by: XXX
 // QueryFrequency: : PT5M
-// QueryPeriod": PT10M
+// QueryPeriod: PT10M
 // The actual KQL query will start below
 
 let Trustedlist = _GetWatchlist('$add here the name of the watchlist');
