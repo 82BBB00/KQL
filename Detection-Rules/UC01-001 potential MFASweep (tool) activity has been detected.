@@ -9,7 +9,7 @@
 // Last modified date: XXX
 // Last modified by: XXX
 // QueryFrequency: : PT10M
-// QueryPeriod": PT20M
+// QueryPeriod: PT20M
 // The actual KQL query will start below
 let TotalThreshold = 5; // Set Treshold OperatingSystems. This can be changed depending on your environment
 SigninLogs
