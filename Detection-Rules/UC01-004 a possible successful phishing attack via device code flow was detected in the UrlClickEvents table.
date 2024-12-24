@@ -2,12 +2,12 @@
 // ID: $add here the Sentinel Rule ID
 // Description: This detection rule detects potential abuse of device code authentication flow following access to a logon page. This rule identifies scenarios where a user accesses a suspicious logon page (e.g., "login.microsoftonline.com"), followed by a successful sign-in using the device code flow within a short timeframe. Such behavior may indicate an attacker leveraging the device code authentication mechanism to gain unauthorized access." It is known that bad actors are using these tools to get access and perform malicious activities. 'Normal' users are unlikely to use these tooling compared to IT administrators. For these persons a watchlist can be used in order to exclude their activities from certain IP addresses. 
 // Severity: High
-// Tactics: Initial Access, Discovery
-// Techniques: T1078 - Valid Accounts, T1082 - System Information Discovery, T1580 - Cloud Service Discovery
+// Tactics: Initial Access
+// Techniques: T1078 - Valid Accounts, T1566 - Phishing
 // Creation date: 24 December 2024
 // Created by: @82BBB00 - https://github.com/82BBB00
-// Last modified date: XXX
-// Last modified by: XXX
+// Last modified date: 24 December 2024
+// Last modified by: @82BBB00 - https://github.com/82BBB00
 // QueryFrequency: PT5M
 // QueryPeriod: PT10M
 // The actual KQL query will start below
