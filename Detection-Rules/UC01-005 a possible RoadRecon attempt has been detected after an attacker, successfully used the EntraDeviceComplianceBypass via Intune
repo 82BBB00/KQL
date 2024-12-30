@@ -14,7 +14,7 @@
 
 // Retrieving a watchlist to prevent known false positives or trusted entities
 let Trustedlist =
-    _GetWatchlist('AL_RoadRecon')
+    _GetWatchlist(''$add here the name of the watchlist'')
 | extend AllFields = pack_all()
 | extend UserPrincipalName = tostring(AllFields.UserPrincipalName)
 | extend IPAddress = tostring(AllFields.[" IPAddress"])
