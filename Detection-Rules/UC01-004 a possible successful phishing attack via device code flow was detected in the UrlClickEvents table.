@@ -15,10 +15,6 @@
 // Retrieving a watchlist to prevent known false positives
 let Trustedlist = 
     _GetWatchlist('$add here the name of the watchlist')
-| extend AllFields = pack_all()
-| extend UserPrincipalName = tostring(AllFields.UserPrincipalName)
-| extend IPAddress = tostring(AllFields.[" IPAddress"])
-| extend AppDisplayName = tostring(AllFields.[" AppDisplayName"])
 | project UserPrincipalName, IPAddress, AppDisplayName;  
 
 // Filter and summarize latest network events where the RemoteURL is the one used to logon. Alternatively UrlClickEvents table could be used.
