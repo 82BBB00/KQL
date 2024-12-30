@@ -7,13 +7,14 @@
 // Techniques: T1078 - Valid Accounts, T1082 - System Information Discovery, T1580 - Cloud Service Discovery
 // Creation date: 29 November 2024
 // Created by: @82BBB00 - https://github.com/82BBB00
-// Last modified date: XXX
-// Last modified by: XXX
+// Last modified date: 30 December 2024
+// Last modified by: @82BBB00 - https://github.com/82BBB00
 // QueryFrequency: : PT5M
 // QueryPeriod: PT10M
 // The actual KQL query will start below
 
-let Trustedlist = _GetWatchlist('$add here the name of the watchlist');
+let Trustedlist = _GetWatchlist('$add here the name of the watchlist')
+| project UserPrincipalName, IPAddress;
 SigninLogs
 // These applications are used for the commands 'az login', 'Connect-AzAccount', and 'Connect-MgGraph'
 | where AppDisplayName in ("Microsoft Azure CLI", "Microsoft Azure PowerShell", "Microsoft Graph Command Line Tools")
@@ -22,11 +23,5 @@ SigninLogs
 // Searching only on UPN and not IDs
 | where UserPrincipalName has "@"
 | project TimeGenerated, UserPrincipalName, AppDisplayName, ClientAppUsed, DeviceDetail, UserAgent, ResultType, IPAddress
-// Joining username and IP from watchlist on signinlogs (Allfields used due to some errors projecting the correct entities)
-| join kind=leftanti (
-    Trustedlist
-    | extend AllFields = pack_all()
-| extend UserPrincipalName = tostring(AllFields.UserPrincipalName)
-| extend IPAddress = tostring(AllFields.[" IPAddress"])
-| project UserPrincipalName, IPAddress)
-on UserPrincipalName, IPAddress
+// Joining username and IP from watchlist on signinlogs
+| join kind=leftanti (Trustedlist) on UserPrincipalName, IPAddress
