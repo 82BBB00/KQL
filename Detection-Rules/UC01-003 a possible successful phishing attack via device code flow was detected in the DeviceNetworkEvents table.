@@ -6,7 +6,7 @@
 // Techniques: T1078 - Valid Accounts, T1566 - Phishing
 // Creation date: 23 December 2024
 // Created by: @82BBB00 - https://github.com/82BBB00
-// Last modified date: 24 December 2024
+// Last modified date: 30 December 2024
 // Last modified by: @82BBB00 - https://github.com/82BBB00
 // QueryFrequency: : PT10M
 // QueryPeriod: PT20M
@@ -15,10 +15,6 @@
 // Retrieving a watchlist to prevent known false positives
 let Trustedlist = 
     _GetWatchlist('$add here the name of the watchlist')
-| extend AllFields = pack_all()
-| extend UserPrincipalName = tostring(AllFields.UserPrincipalName)
-| extend IPAddress = tostring(AllFields.[" IPAddress"])
-| extend AppDisplayName = tostring(AllFields.[" AppDisplayName"])
 | project UserPrincipalName, IPAddress, AppDisplayName;  
 
 // Filter and summarize latest network events where the RemoteURL is the one used to logon. Alternatively UrlClickEvents table could be used.
