@@ -15,9 +15,6 @@
 // Retrieving a watchlist to prevent known false positives or trusted entities
 let Trustedlist =
     _GetWatchlist('$add here the name of the watchlist')
-| extend AllFields = pack_all()
-| extend UserPrincipalName = tostring(AllFields.UserPrincipalName)
-| extend IPAddress = tostring(AllFields.[" IPAddress"])
 | project UserPrincipalName, IPAddress;  
 
 // Retrieving the first logon to Microsoft Intune Company Portal where ResourceDisplayName is Microsoft Graph
