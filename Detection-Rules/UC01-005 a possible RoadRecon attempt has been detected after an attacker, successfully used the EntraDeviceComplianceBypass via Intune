@@ -1,0 +1,45 @@
+// Title: UC01-005 a possible RoadRecon attempt has been detected after an attacker, successfully used the EntraDeviceComplianceBypass via Intune.
+// ID: $add here the Sentinel Rule ID
+// Description: This rule identifies potential exploitation of a bypass in Intune's compliance Conditional Access Policies (CAPs) followed by the use of ROADrecon, a tool used for Azure AD tenant enumeration and Conditional Access Policy exploration. The bypass leverages the Intune portal client ID and a special redirect URI to obtain access and refresh tokens, circumventing device compliance requirements in Entra ID. Once this bypass is successful, ROADrecon can use the obtained tokens to gather sensitive information, such as tenant configurations, user roles, and Conditional Access Policies. This combination of tools poses a significant security risk, as it enables attackers to enumerate an Azure AD environment without a compliant device. Currently there are not logs available such as , since RoadRecon uses Azure AD Graph 1.61-internal version. More information can be found at: https://github.com/zh54321/PoCEntraDeviceComplianceBypass, https://github.com/dirkjanm/ROADtools, https://labs.jumpsec.com/tokensmith-bypassing-intune-compliant-device-conditional-access/
+// Severity: High
+// Tactics: Initial Access
+// Techniques: T1078 - Valid Accounts, T1566 - Phishing
+// Creation date: 29 December 2024
+// Created by: @82BBB00 - https://github.com/82BBB00 with a lot of help from Nathan Webb - https://www.linkedin.com/in/nathanjohnwebb/
+// Last modified date: 30 December 2024
+// Last modified by: @82BBB00 - https://github.com/82BBB00
+// QueryFrequency: PT5M
+// QueryPeriod: PT10M
+// The actual KQL query will start below
+
+// Retrieving a watchlist to prevent known false positives or trusted entities
+let Trustedlist =
+    _GetWatchlist('AL_RoadRecon')
+| extend AllFields = pack_all()
+| extend UserPrincipalName = tostring(AllFields.UserPrincipalName)
+| extend IPAddress = tostring(AllFields.[" IPAddress"])
+| project UserPrincipalName, IPAddress;  
+
+// Retrieving the first logon to Microsoft Intune Company Portal where ResourceDisplayName is Microsoft Graph
+let InitialSignIn = 
+SigninLogs
+| where AppId == "9ba1a5c7-f17a-4de9-a1f1-6178c8d51223" // Microsoft Intune Company Portal
+| where ResourceDisplayName == "Microsoft Graph"
+| where ResultType in ("50199", "0")
+| join kind=leftanti (Trustedlist) on UserPrincipalName, IPAddress // Remove trusted entities or false positive scenarios
+| project InitialSignInTimeGenerated=TimeGenerated, UserPrincipalName, ResultType, ResultDescription, IPAddress, Location, InitialSignInUserAgent=UserAgent, AppDisplayName, ResourceDisplayName, InitialSignInDeviceDetail=DeviceDetail;
+
+// Retrieving non-interactive activity that RoadRecon shows. Since UserAgent can be changed, this is not used to further finetune.
+let SubsequentSignIn =
+AADNonInteractiveUserSignInLogs
+| where AppId == "9ba1a5c7-f17a-4de9-a1f1-6178c8d51223" // Microsoft Intune Company Portal
+| where ResourceDisplayName in ("Microsoft Graph", "Windows Azure Active Directory")
+| extend deviceId = tostring(parse_json(DeviceDetail).deviceId)
+| where isempty(deviceId) // removing devices that are actually Intune registered
+| project SubsequentSignInTimeGenerated=TimeGenerated, UserPrincipalName, ResultType, ResultDescription, IPAddress, Location, SubsequentSignInUserAgent=UserAgent, AppDisplayName, ResourceDisplayName,SubsequentSignInDeviceDetail=DeviceDetail;
+
+InitialSignIn
+| join kind=inner (SubsequentSignIn)
+  on UserPrincipalName
+| where datetime_diff('minute', SubsequentSignInTimeGenerated, InitialSignInTimeGenerated) between (0 .. 5) // 5 minutes timeframe, could be modified
+| project InitialSignInTimeGenerated, InitialSignInUserPrincipalName=UserPrincipalName, InitialSignInResultType=ResultType, InitialSignInIPAddress=IPAddress, InitialSignInLocation=Location, InitialSignInUserAgent, InitialSignInAppDisplayName=AppDisplayName, InitialSignInResourceDisplayName=ResourceDisplayName, SubsequentSignInTimeGenerated, SubsequentSignInPrincipalName=UserPrincipalName, SubsequentSignInResultType=ResultType, SubsequentSignInIPAddress=IPAddress, SubsequentSignInLocation=Location, SubsequentSignInUserAgent, SubsequentSignInAppDisplayName=AppDisplayName, SubsequentSignInResourceDisplayName=ResourceDisplayName
