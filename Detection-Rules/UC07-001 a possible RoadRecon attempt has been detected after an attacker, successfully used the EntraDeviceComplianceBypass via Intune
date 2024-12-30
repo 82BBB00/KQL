@@ -1,9 +1,9 @@
-// Title: UC01-005 a possible RoadRecon attempt has been detected after an attacker, successfully used the EntraDeviceComplianceBypass via Intune.
+// Title: UC07-001 a possible RoadRecon attempt has been detected after an attacker, successfully used the EntraDeviceComplianceBypass via Intune.
 // ID: $add here the Sentinel Rule ID
 // Description: This rule identifies potential exploitation of a bypass in Intune's compliance Conditional Access Policies (CAPs) followed by the use of ROADrecon, a tool used for Azure AD tenant enumeration and Conditional Access Policy exploration. The bypass leverages the Intune portal client ID and a special redirect URI to obtain access and refresh tokens, circumventing device compliance requirements in Entra ID. Once this bypass is successful, ROADrecon can use the obtained tokens to gather sensitive information, such as tenant configurations, user roles, and Conditional Access Policies. This combination of tools poses a significant security risk, as it enables attackers to enumerate an Azure AD environment without a compliant device. Currently there are not logs available such as 'MicrosoftGraphActivityLogs' table, since RoadRecon uses Azure AD Graph 1.61-internal version. More information can be found at: https://github.com/zh54321/PoCEntraDeviceComplianceBypass, https://github.com/dirkjanm/ROADtools, https://labs.jumpsec.com/tokensmith-bypassing-intune-compliant-device-conditional-access/
 // Severity: High
-// Tactics: Initial Access
-// Techniques: T1078 - Valid Accounts, T1566 - Phishing
+// Tactics: Initial Access, Discovery, Collection
+// Techniques: T1078 - Valid Accounts,  T1087 - Account Discovery, T1526 - Cloud Service Discovery T1069 - Permission Groups Discovery, T1018 - Remote System Discovery, T1119 - Automated Collection
 // Creation date: 29 December 2024
 // Created by: @82BBB00 - https://github.com/82BBB00 with a lot of help from Nathan Webb - https://www.linkedin.com/in/nathanjohnwebb/
 // Last modified date: 30 December 2024
