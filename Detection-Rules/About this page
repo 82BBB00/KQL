@@ -14,6 +14,7 @@ Each detection rule follows a standard format that includes the following inform
 - MITRE ATT&CK Mapping: Each rule is tagged with the MITRE ATT&CK Technique number to show which part of the framework it addresses.
 
 ### Example
+UC00  Deception
 UC01	Initial access
 UC02	Execution
 UC03	Persistence
