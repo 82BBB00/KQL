@@ -1,0 +1,25 @@
+//Prerequisite: Ensure that AzureDiagnostics is enabled on the Key Vault to allow logs to be sent to your Log Analytics workspace. Additionally, the watchlist must include the following columns: Resource and Reason.
+
+// Title: UC00-001 a key vault decoy was found and attempted to be accessed. 
+// ID: $add here the Sentinel Rule ID
+// Description: This detection rule identifies and triggers a low-severity alert whenever someone accesses or attempts to access the decoy key vault. The rule is designed to monitor unauthorized or suspicious interactions with the key vault as part of a broader deception strategy. Alerts from this rule provide early indicators of potential probing or reconnaissance activity within the environment.
+// Severity: Low
+// Tactics: Discovery
+// Techniques: T1083 - File and Directory Discovery
+// Creation date: 22 January 2025
+// Created by: @82BBB00 - https://github.com/82BBB00 
+// Last modified date: X
+// Last modified by: X
+// QueryFrequency: PT5M
+// QueryPeriod: PT10M
+// The actual KQL query will start below
+
+// Retrieving a watchlist to prevent known false positives or trusted entities
+let Trustedlist =
+    _GetWatchlist('$add here the name of the watchlist')
+| project Resource;
+
+AzureDiagnostics
+| where OperationName == "VaultGet"
+| where Resource in (Trustedlist)
+| project TimeGenerated, ResourceGroup, Resource, OperationName, ResultType, httpStatusCode_d, CallerIPAddress, Username=identity_claim_http_schemas_xmlsoap_org_ws_2005_05_identity_claims_upn_s
