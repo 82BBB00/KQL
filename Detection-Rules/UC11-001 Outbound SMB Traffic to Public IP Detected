@@ -16,10 +16,15 @@ let Trustedlist =
     _GetWatchlist('$add here the name of the watchlist')
 | project RemoteIP, RemoteUrl, Reason
 DeviceNetworkEvents
+DeviceNetworkEvents
 | where RemoteIPType == "Public"
 | where RemotePort == 445
 | where ActionType == "ConnectionSuccess"
 | project TimeGenerated, ActionType, DeviceName, InitiatingProcessAccountUpn, LocalIP, RemoteIP, RemotePort, RemoteUrl
-| join kind=leftanti (
-        Trustedlist
-    ) on RemoteIP
+// tuning away false positives
+| where LocalIP <> RemoteIP
+//| join kind=leftanti (
+//        Trustedlist
+//    ) on RemoteIP
+| join kind=leftanti Trustedlist on $left.RemoteIP == $right.RemoteIP
+| join kind=leftanti Trustedlist on $left.RemoteUrl == $right.RemoteUrl
