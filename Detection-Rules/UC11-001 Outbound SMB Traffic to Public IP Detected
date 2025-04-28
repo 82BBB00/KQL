@@ -1,0 +1,25 @@
+// Title: UC11-001 Outbound SMB Traffic to Public IP Detected
+// ID: $add here the Sentinel Rule ID
+// Description: This rule detects successful outbound SMB (port 445) connections to public IP addresses. SMB traffic should be restricted to internal networks only; connections to external IPs may indicate malware activity, data exfiltration, lateral movement attempts, or misconfiguration. Immediate investigation is recommended to determine the nature of the connection and potential risk. It is possible that newly onboarded devices make connections towards legitimate devices and the watchlist could be used for those. 
+// Severity: Low
+// Tactics: Command and Control, Exfiltration
+// Techniques: T1071.002 - Application Layer Protocol: File Transfer Protocols, T1041 – Exfiltration Over C2 Channel 
+// Creation date: 27 April 2025
+// Created by: @82BBB00 - https://github.com/82BBB00
+// Last modified date: 28 April 2025
+// Last modified by: @82BBB00 - https://github.com/82BBB00
+// QueryFrequency: PT5M
+// QueryPeriod: PT10M
+// The actual KQL query will start below
+// Retrieving a watchlist to prevent known false positives
+let Trustedlist = 
+    _GetWatchlist('$add here the name of the watchlist')
+| project RemoteIP, RemoteUrl, Reason
+DeviceNetworkEvents
+| where RemoteIPType == "Public"
+| where RemotePort == 445
+| where ActionType == "ConnectionSuccess"
+| project TimeGenerated, ActionType, DeviceName, InitiatingProcessAccountUpn, LocalIP, RemoteIP, RemotePort, RemoteUrl
+| join kind=leftanti (
+        Trustedlist
+    ) on RemoteIP
