@@ -1,0 +1,25 @@
+// Title: UC15-001 Monitor Logic App Health Status
+// ID: $add here the Sentinel Rule ID
+// Description: This detection rule will look for Logic App failures - that way the responsible team can take proper action to fix it. Logic Apps that you don't want to monitor can be added to the watchlist. 
+// Severity: Informational
+// Tactics: Impact
+// Techniques: T1489 - Service Stop
+// Creation date: 25 June 2025
+// Created by: @82BBB00 - https://github.com/82BBB00
+// Last modified date: 25 June 2025
+// Last modified by: @82BBB00 - https://github.com/82BBB00
+// QueryFrequency: : PT5M
+// QueryPeriod: PT10M
+// The actual KQL query will start below
+
+
+// Retrieving a watchlist to gather monitored logic apps
+let Trustedlist =
+    _GetWatchlist('$add here the name of the watchlist')
+| project LogicAppName, Reason;
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.LOGIC"
+| where status_s !in ("Succeeded", "Running", "Skipped") // This is used because I was not sure what the value was for Failure ;)
+| project TimeGenerated, ResourceGroup, Resource, ResourceType, LogicAppName=resource_workflowName_s, OperationName, status_s
+// Removing Logic Apps from the monitoring via the watchlist
+| join kind=leftanti (Trustedlist) on LogicAppName
