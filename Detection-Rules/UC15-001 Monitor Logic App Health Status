@@ -6,7 +6,7 @@
 // Techniques: T1489 - Service Stop
 // Creation date: 25 June 2025
 // Created by: @82BBB00 - https://github.com/82BBB00
-// Last modified date: 25 June 2025
+// Last modified date: 26 June 2025
 // Last modified by: @82BBB00 - https://github.com/82BBB00
 // QueryFrequency: : PT5M
 // QueryPeriod: PT10M
@@ -19,7 +19,8 @@ let Trustedlist =
 | project LogicAppName, Reason;
 AzureDiagnostics
 | where ResourceProvider == "MICROSOFT.LOGIC"
-| where status_s !in ("Succeeded", "Running", "Skipped") // This is used because I was not sure what the value was for Failure ;)
-| project TimeGenerated, ResourceGroup, Resource, ResourceType, LogicAppName=resource_workflowName_s, OperationName, status_s
+| where ResourceType == "WORKFLOWS/RUNS"
+| where status_s == "Failed"
+| project TimeGenerated, ResourceGroup, Resource, ResourceType, LogicAppName=resource_workflowName_s, OperationName, status_s, error_message_s, resource_runId_s, _ResourceId
 // Removing Logic Apps from the monitoring via the watchlist
 | join kind=leftanti (Trustedlist) on LogicAppName
