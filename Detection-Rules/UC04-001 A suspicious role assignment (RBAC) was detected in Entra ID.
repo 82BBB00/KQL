@@ -1,0 +1,72 @@
+// Title: UC04-001 A suspicious role assignment (RBAC) was detected in Entra ID. 
+// ID: $add here the Sentinel Rule ID
+// Description: This detection rule identifies suspicious Azure RBAC role assignments where high-privilege roles (e.g., Contributor, Owner, User Access Administrator) are granted. These events may be the result of automation misuse, identity compromise, or malicious activity. The query also attempts to enrich UPNs, and where UPNs are not email-format (missing "@"), it will look up and substitute the real UPN if found. If still unresolved, it appends " application" to the ID for clarity. This ID could be looked up in the  CloudAppEvents Events. It uses furthermore a watchlist that could be used for exclusions.
+// Severity: High
+// Tactics: Privilege Escalation
+// Techniques: T1098.001 - Account Manipulation: Additional Cloud Roles
+// Creation date: 13 July 2025
+// Created by: @82BBB00 - https://github.com/82BBB00
+// Last modified date: 13 July 2025
+// Last modified by: @82BBB00 - https://github.com/82BBB00
+// QueryFrequency: PT10M
+// QueryPeriod: PT20M
+let Trustedlist = 
+    _GetWatchlist('TestBoaz')
+    | extend SubscriptionId = tostring(SubscriptionId);
+ 
+let GitHubRoles = externaldata(line:string)
+[
+    "https://raw.githubusercontent.com/maciejporebski/azure-rbac-change-tracking/main/README.md"
+]
+with(format='txt')
+| where line startswith "| ["
+| extend parts = extract_all(@"\[(.*?)\]\([^)]+\)", line)
+| where array_length(parts) == 2
+| extend RoleName = tostring(parts[0])
+| extend RoleId = tostring(parts[1])
+// Extract only the GUID from RoleId string (which looks like "[GUID](roles/GUID.json)")
+| extend RoleId = extract(@"([a-f0-9\-]{36})", 1, RoleId)
+| project RoleName, RoleId;
+ 
+let UPNCallerlookup = AADNonInteractiveUserSignInLogs
+| summarize arg_max(TimeGenerated, *) by ResourceServicePrincipalId
+| project  UPN=ResourceServicePrincipalId, UserPrincipalName, TimeGenerated;
+
+let detectionrule = AzureActivity
+| where OperationNameValue == "MICROSOFT.AUTHORIZATION/ROLEASSIGNMENTS/WRITE"
+| where ActivityStatusValue == "Start"
+| where ResourceProviderValue == "MICROSOFT.AUTHORIZATION"
+| extend UPN = tostring(parse_json(Properties).caller)
+| extend Source_IpAddress = tostring(parse_json(tostring(parse_json(Properties).httpRequest)).clientIpAddress)
+| extend EntraID_Guid = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).Properties)).PrincipalId)
+| extend roleDefinitionId_ = tostring(parse_json(tostring(parse_json(tostring(Properties_d.requestbody)).Properties)).RoleDefinitionId)
+| extend roleDefinitionId_2 = tostring(parse_json(tostring(parse_json(tostring(Properties_d.requestbody)).Properties)).roleDefinitionId)
+| extend roleDefinitionId_3 = tostring(parse_json(tostring(parse_json(tostring(Properties_d.requestbody)).properties)).roleDefinitionId)
+| parse roleDefinitionId_ with * "/roleDefinitions/" RoleId1
+| parse roleDefinitionId_2 with * "/roleDefinitions/" RoleId2
+| parse roleDefinitionId_3 with * "/roleDefinitions/" RoleId3
+| parse roleDefinitionId_2 with * "/roleAssignments/" RoleId4
+| extend RoleId = coalesce(RoleId1, RoleId2, RoleId3, RoleId4)
+| project TimeGenerated, UPN, Source_IpAddress, EntraID_Guid, OperationNameValue, RoleId, SubscriptionId, ResourceGroup
+| extend SubscriptionId = tostring(SubscriptionId);
+ 
+detectionrule
+| join kind=inner GitHubRoles on RoleId
+| project TimeGenerated, UPN, Source_IpAddress, EntraID_Guid, OperationNameValue, RoleName, RoleId, SubscriptionId, ResourceGroup
+| extend BaseSeverity = iff(RoleName == "Contributor" or RoleName == "Owner" or RoleName == "Reservations Administrator" or RoleName == "Role Based Access Control Administrator" or RoleName == "User Access Administrator", "High", "Low")
+| join kind=leftouter (
+    UPNCallerlookup
+) on $left.UPN == $right.UPN
+| extend UPN = iif(
+    UPN contains "@", 
+    UPN, 
+    iif(
+        isnotempty(UserPrincipalName), 
+        UserPrincipalName, 
+        strcat(UPN, " =applicationID")
+    )
+)
+| project TimeGenerated, UPN, Source_IpAddress, EntraID_Guid, OperationNameValue, RoleName, RoleId, SubscriptionId, ResourceGroup
+| join kind=leftanti (
+       Trustedlist
+   ) on UPN, Source_IpAddress, RoleName, SubscriptionId, ResourceGroup
